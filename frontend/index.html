@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Heart Disease Risk Predictor</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🫀 Heart Disease Risk Predictor</h1>
+            <p>Clinical decision support tool for assessing cardiovascular risk</p>
+        </header>
+
+        <main>
+            <section class="input-section">
+                <h2>Patient Information</h2>
+                <form id="prediction-form">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="age">Age</label>
+                            <input type="number" id="age" name="age" min="0" max="120" required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="sex">Sex</label>
+                            <select id="sex" name="sex" required>
+                                <option value="">Select</option>
+                                <option value="0">Female</option>
+                                <option value="1">Male</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="cp">Chest Pain Type</label>
+                            <select id="cp" name="cp" required>
+                                <option value="">Select</option>
+                                <option value="0">Typical Angina</option>
+                                <option value="1">Atypical Angina</option>
+                                <option value="2">Non-anginal Pain</option>
+                                <option value="3">Asymptomatic</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="trestbps">Resting Blood Pressure (mm Hg)</label>
+                            <input type="number" id="trestbps" name="trestbps" min="0" required>
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="chol">Serum Cholesterol (mg/dl)</label>
+                            <input type="number" id="chol" name="chol" min="0" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="fbs">Fasting Blood Sugar > 120 mg/dl</label>
+                            <select id="fbs" name="fbs" required>
+                                <option value="">Select</option>
+                                <option value="0">No</option>
+                                <option value="1">Yes</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="restecg">Resting ECG Results</label>
+                            <select id="restecg" name="restecg" required>
+                                <option value="">Select</option>
+                                <option value="0">Normal</option>
+                                <option value="1">ST-T Abnormality</option>
+                                <option value="2">Left Ventricular Hypertrophy</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="thalach">Maximum Heart Rate</label>
+                            <input type="number" id="thalach" name="thalach" min="0" required>
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="exang">Exercise Induced Angina</label>
+                            <select id="exang" name="exang" required>
+                                <option value="">Select</option>
+                                <option value="0">No</option>
+                                <option value="1">Yes</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="oldpeak">ST Depression Induced by Exercise</label>
+                            <input type="number" id="oldpeak" name="oldpeak" step="0.1" min="0" required>
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="slope">Slope of Peak Exercise ST Segment</label>
+                            <select id="slope" name="slope" required>
+                                <option value="">Select</option>
+                                <option value="0">Upsloping</option>
+                                <option value="1">Flat</option>
+                                <option value="2">Downsloping</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="ca">Number of Major Vessels Colored</label>
+                            <select id="ca" name="ca" required>
+                                <option value="">Select</option>
+                                <option value="0">0</option>
+                                <option value="1">1</option>
+                                <option value="2">2</option>
+                                <option value="3">3</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="thal">Thalassemia</label>
+                            <select id="thal" name="thal" required>
+                                <option value="">Select</option>
+                                <option value="0">Normal</option>
+                                <option value="1">Fixed Defect</option>
+                                <option value="2">Reversible Defect</option>
+                                <option value="3">Unknown</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="model">Prediction Model</label>
+                        <select id="model" name="model">
+                            <option value="Logistic Regression">Logistic Regression</option>
+                            <option value="Random Forest">Random Forest</option>
+                        </select>
+                    </div>
+
+                    <button type="submit" class="predict-btn">Predict Risk</button>
+                </form>
+            </section>
+
+            <section class="result-section" id="result-section">
+                <h2>Risk Assessment Result</h2>
+                <div class="risk-card" id="risk-card">
+                    <div class="risk-header">
+                        <span class="risk-indicator" id="risk-indicator"></span>
+                        <h3 id="risk-level">Risk Level</h3>
+                    </div>
+                    <div class="risk-details">
+                        <p class="probability">Probability: <span id="probability">0%</span></p>
+                        <p class="clinical-note" id="clinical-note"></p>
+                    </div>
+                </div>
+
+                <div class="factors-section">
+                    <h3>Top Contributing Factors</h3>
+                    <ul id="factors-list"></ul>
+                </div>
+
+                <div class="model-info">
+                    <p>Model Used: <span id="model-used"></span></p>
+                </div>
+            </section>
+        </main>
+
+        <footer>
+            <p>Clinical Decision Support Tool | For demonstration purposes only</p>
+        </footer>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
