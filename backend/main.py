@@ -1,7 +1,7 @@
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
-from typing import Dict, Any
+from typing import Dict, Any, List, Optional
 import os
 import sys
 
@@ -36,13 +36,12 @@ async def health_check():
     return {"status": "healthy"}
 
 @app.post("/predict", response_model=PredictionResult)
-async def predict_heart_disease(data: PatientData, model: str = "Logistic Regression"):
+async def predict_heart_disease(data: PatientData):
     """
     Predict heart disease risk based on patient data
     
     Args:
         data: Patient data including clinical measurements
-        model: Model to use for prediction ("Logistic Regression" or "Random Forest")
     
     Returns:
         Prediction result including risk level, probability, and contributing factors
@@ -51,12 +50,8 @@ async def predict_heart_disease(data: PatientData, model: str = "Logistic Regres
         # Convert Pydantic model to dictionary
         patient_data = data.dict()
         
-        # Validate model selection
-        if model not in ["Logistic Regression", "Random Forest"]:
-            raise HTTPException(status_code=400, detail="Invalid model selection")
-        
         # Make prediction
-        risk_level, probability, contributing_factors = predictor.predict(patient_data, model)
+        risk_level, probability, contributing_factors = predictor.predict(patient_data)
         
         # Generate clinical note based on risk level
         if risk_level == "High Risk":
@@ -70,7 +65,7 @@ async def predict_heart_disease(data: PatientData, model: str = "Logistic Regres
             probability=float(probability),
             contributing_factors=contributing_factors,
             clinical_note=clinical_note,
-            model_used=model
+            model_used=predictor.model_name
         )
     
     except Exception as e:
