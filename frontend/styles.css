@@ -471,6 +471,17 @@ footer {
     body {
         padding: 10px;
     }
+    
+    .form-group input,
+    .form-group select {
+        padding: 10px 12px;
+        font-size: 0.9rem;
+    }
+    
+    .predict-btn {
+        padding: 12px 20px;
+        font-size: 1rem;
+    }
 }
 
 /* Loading spinner */
@@ -488,4 +499,28 @@ footer {
 
 @keyframes spin {
     to { transform: rotate(360deg); }
+}
+
+/* Progress bar for probability */
+.probability-bar {
+    width: 100%;
+    height: 20px;
+    background-color: #e0e0e0;
+    border-radius: 10px;
+    margin: 15px 0;
+    overflow: hidden;
+}
+
+.probability-fill {
+    height: 100%;
+    border-radius: 10px;
+    transition: width 1s ease-in-out;
+}
+
+.low-risk .probability-fill {
+    background: linear-gradient(90deg, #2ecc71, #27ae60);
+}
+
+.high-risk .probability-fill {
+    background: linear-gradient(90deg, #e74c3c, #c0392b);
 }
