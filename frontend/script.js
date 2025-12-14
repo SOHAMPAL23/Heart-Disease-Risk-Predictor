@@ -16,9 +16,6 @@ document.getElementById('prediction-form').addEventListener('submit', async func
         }
     }
     
-    // Get selected model
-    const model = formData.get('model');
-    
     try {
         // Show loading state
         const submitBtn = document.querySelector('.predict-btn');
@@ -30,7 +27,7 @@ document.getElementById('prediction-form').addEventListener('submit', async func
         this.classList.add('predicting');
         
         // Make API request
-        const response = await fetch(`${API_URL}/predict?model=${encodeURIComponent(model)}`, {
+        const response = await fetch(`${API_URL}/predict`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -82,8 +79,16 @@ function displayResults(result) {
         // Update risk indicator and level
         document.getElementById('risk-level').textContent = result.risk_level;
         
-        // Update probability
-        document.getElementById('probability').innerHTML = `Probability: <span>${(result.probability * 100).toFixed(1)}%</span>`;
+        // Update probability with percentage and progress bar
+        const probabilityPercent = (result.probability * 100).toFixed(1);
+        document.getElementById('probability').innerHTML = `Probability: <span>${probabilityPercent}%</span>`;
+        
+        // Update progress bar
+        const progressBar = document.createElement('div');
+        progressBar.className = 'probability-bar';
+        progressBar.innerHTML = `<div class="probability-fill" style="width: ${probabilityPercent}%"></div>`;
+        const probabilityElement = document.getElementById('probability');
+        probabilityElement.parentNode.insertBefore(progressBar, probabilityElement.nextSibling);
         
         // Update clinical note
         document.getElementById('clinical-note').textContent = result.clinical_note;
