@@ -3,28 +3,28 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Heart Disease Risk Predictor</title>
+    <title>Heart Disease Risk Prediction</title>
     <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
 </head>
 <body>
     <div class="container">
         <header>
-            <h1>🫀 Heart Disease Risk Predictor</h1>
-            <p>Clinical decision support tool for assessing cardiovascular risk</p>
+            <h1>🫀 Heart Disease Risk Prediction</h1>
+            <p>Clinical Decision Support System for Cardiovascular Assessment</p>
         </header>
-
+        
         <main>
             <section class="input-section">
-                <h2>Patient Information</h2>
+                <h2>Patient Clinical Data</h2>
                 <form id="prediction-form">
                     <div class="form-row">
                         <div class="form-group">
-                            <label for="age">Age</label>
-                            <input type="number" id="age" name="age" min="0" max="120" required>
+                            <label for="age">Age:</label>
+                            <input type="number" id="age" name="age" min="18" max="100" required>
                         </div>
-                        
                         <div class="form-group">
-                            <label for="sex">Sex</label>
+                            <label for="sex">Sex:</label>
                             <select id="sex" name="sex" required>
                                 <option value="">Select</option>
                                 <option value="0">Female</option>
@@ -32,10 +32,10 @@
                             </select>
                         </div>
                     </div>
-
+                    
                     <div class="form-row">
                         <div class="form-group">
-                            <label for="cp">Chest Pain Type</label>
+                            <label for="cp">Chest Pain Type:</label>
                             <select id="cp" name="cp" required>
                                 <option value="">Select</option>
                                 <option value="0">Typical Angina</option>
@@ -44,21 +44,19 @@
                                 <option value="3">Asymptomatic</option>
                             </select>
                         </div>
-
                         <div class="form-group">
-                            <label for="trestbps">Resting Blood Pressure (mm Hg)</label>
-                            <input type="number" id="trestbps" name="trestbps" min="0" required>
+                            <label for="trestbps">Resting Blood Pressure (mm Hg):</label>
+                            <input type="number" id="trestbps" name="trestbps" min="90" max="200" required>
                         </div>
                     </div>
-
+                    
                     <div class="form-row">
                         <div class="form-group">
-                            <label for="chol">Serum Cholesterol (mg/dl)</label>
-                            <input type="number" id="chol" name="chol" min="0" required>
+                            <label for="chol">Cholesterol (mg/dl):</label>
+                            <input type="number" id="chol" name="chol" min="120" max="600" required>
                         </div>
-
                         <div class="form-group">
-                            <label for="fbs">Fasting Blood Sugar > 120 mg/dl</label>
+                            <label for="fbs">Fasting Blood Sugar > 120 mg/dl:</label>
                             <select id="fbs" name="fbs" required>
                                 <option value="">Select</option>
                                 <option value="0">No</option>
@@ -66,43 +64,41 @@
                             </select>
                         </div>
                     </div>
-
+                    
                     <div class="form-row">
                         <div class="form-group">
-                            <label for="restecg">Resting ECG Results</label>
+                            <label for="restecg">Resting ECG Results:</label>
                             <select id="restecg" name="restecg" required>
                                 <option value="">Select</option>
                                 <option value="0">Normal</option>
-                                <option value="1">ST-T Abnormality</option>
-                                <option value="2">Left Ventricular Hypertrophy</option>
+                                <option value="1">Abnormal ST-T wave</option>
+                                <option value="2">Probable LV hypertrophy</option>
                             </select>
                         </div>
-
                         <div class="form-group">
-                            <label for="thalach">Maximum Heart Rate</label>
-                            <input type="number" id="thalach" name="thalach" min="0" required>
+                            <label for="thalach">Max Heart Rate Achieved:</label>
+                            <input type="number" id="thalach" name="thalach" min="70" max="200" required>
                         </div>
                     </div>
-
+                    
                     <div class="form-row">
                         <div class="form-group">
-                            <label for="exang">Exercise Induced Angina</label>
+                            <label for="exang">Exercise Induced Angina:</label>
                             <select id="exang" name="exang" required>
                                 <option value="">Select</option>
                                 <option value="0">No</option>
                                 <option value="1">Yes</option>
                             </select>
                         </div>
-
                         <div class="form-group">
-                            <label for="oldpeak">ST Depression Induced by Exercise</label>
-                            <input type="number" id="oldpeak" name="oldpeak" step="0.1" min="0" required>
+                            <label for="oldpeak">ST Depression (induced by exercise):</label>
+                            <input type="number" id="oldpeak" name="oldpeak" step="0.1" min="0" max="10" required>
                         </div>
                     </div>
-
+                    
                     <div class="form-row">
                         <div class="form-group">
-                            <label for="slope">Slope of Peak Exercise ST Segment</label>
+                            <label for="slope">Slope of Peak Exercise ST Segment:</label>
                             <select id="slope" name="slope" required>
                                 <option value="">Select</option>
                                 <option value="0">Upsloping</option>
@@ -110,22 +106,21 @@
                                 <option value="2">Downsloping</option>
                             </select>
                         </div>
-
                         <div class="form-group">
-                            <label for="ca">Number of Major Vessels Colored</label>
+                            <label for="ca">Number of Major Vessels Colored by Flourosopy:</label>
                             <select id="ca" name="ca" required>
                                 <option value="">Select</option>
-                                <option value="0">0</option>
-                                <option value="1">1</option>
-                                <option value="2">2</option>
-                                <option value="3">3</option>
+                                <option value="0">0 vessels</option>
+                                <option value="1">1 vessel</option>
+                                <option value="2">2 vessels</option>
+                                <option value="3">3 vessels</option>
                             </select>
                         </div>
                     </div>
-
+                    
                     <div class="form-row">
                         <div class="form-group">
-                            <label for="thal">Thalassemia</label>
+                            <label for="thal">Thalassemia:</label>
                             <select id="thal" name="thal" required>
                                 <option value="">Select</option>
                                 <option value="0">Normal</option>
@@ -135,40 +130,60 @@
                             </select>
                         </div>
                     </div>
-
+                    
                     <button type="submit" class="predict-btn">Predict Risk</button>
+                    <button type="reset" class="reset-btn">Reset Form</button>
                 </form>
             </section>
-
+            
+            <!-- Prescription Section -->
+            <section class="prescription-section" id="prescription-section">
+                <h2>Prescription Management</h2>
+                <div class="prescription-controls">
+                    <button id="add-prescription-btn" class="prescription-btn">Add New Prescription</button>
+                    <button id="save-prescriptions-btn" class="prescription-btn save-btn">Save Prescriptions</button>
+                </div>
+                
+                <div class="prescription-list" id="prescription-list">
+                    <!-- Prescriptions will be added dynamically -->
+                    <div class="empty-prescription-message" id="empty-prescription-message">
+                        No prescriptions added yet. Click "Add New Prescription" to get started.
+                    </div>
+                </div>
+            </section>
+            
             <section class="result-section" id="result-section">
-                <h2>Risk Assessment Result</h2>
+                <h2>Prediction Results</h2>
                 <div class="risk-card" id="risk-card">
                     <div class="risk-header">
-                        <span class="risk-indicator" id="risk-indicator"></span>
+                        <div class="risk-indicator"></div>
                         <h3 id="risk-level">Risk Level</h3>
                     </div>
                     <div class="risk-details">
-                        <p class="probability">Probability: <span id="probability">0%</span></p>
-                        <p class="clinical-note" id="clinical-note"></p>
+                        <div class="probability" id="probability">Probability: 0%</div>
+                        <div class="clinical-note" id="clinical-note">Clinical note will appear here...</div>
                     </div>
                 </div>
-
+                
                 <div class="factors-section">
-                    <h3>Top Contributing Factors</h3>
-                    <ul id="factors-list"></ul>
+                    <h3>Contributing Factors</h3>
+                    <ul id="factors-list">
+                        <!-- Factors will be populated dynamically -->
+                    </ul>
                 </div>
-
+                
                 <div class="model-info">
-                    <p>Model Used: <span id="model-used"></span></p>
+                    Model Used: <span id="model-used">-</span>
                 </div>
             </section>
         </main>
-
+        
         <footer>
-            <p>Clinical Decision Support Tool | For demonstration purposes only</p>
+            <p>Heart Disease Risk Prediction System | For Clinical Use Only</p>
+            <p>Note: This system provides predictive analytics and should not replace professional medical advice.</p>
         </footer>
     </div>
-
+    
     <script src="script.js"></script>
 </body>
 </html>
