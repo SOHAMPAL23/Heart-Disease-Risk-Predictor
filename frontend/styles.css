@@ -72,6 +72,27 @@ form:hover {
     transform: translateY(-2px);
 }
 
+.reset-btn {
+    background: #6c757d;
+    color: white;
+    border: none;
+    padding: 15px 30px;
+    font-size: 1.1rem;
+    border-radius: 8px;
+    cursor: pointer;
+    width: 100%;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    transition: all 0.3s ease;
+    margin-top: 10px;
+}
+
+.reset-btn:hover {
+    background: #5a6268;
+    transform: translateY(-3px);
+    box-shadow: 0 8px 15px rgba(0, 0, 0, 0.2);
+}
+
 .form-row {
     display: flex;
     gap: 20px;
@@ -101,7 +122,8 @@ form:hover {
 }
 
 .form-group input,
-.form-group select {
+.form-group select,
+.form-group textarea {
     width: 100%;
     padding: 12px 15px;
     border: 1px solid #ddd;
@@ -111,8 +133,14 @@ form:hover {
     background: #fff;
 }
 
+.form-group textarea {
+    min-height: 80px;
+    resize: vertical;
+}
+
 .form-group input:focus,
-.form-group select:focus {
+.form-group select:focus,
+.form-group textarea:focus {
     outline: none;
     border-color: #1a2a6c;
     box-shadow: 0 0 0 3px rgba(26, 42, 108, 0.1);
@@ -163,6 +191,141 @@ form:hover {
 
 .predict-btn:focus:not(:active)::after {
     animation: ripple 1s ease-out;
+}
+
+/* Prescription Section */
+.prescription-section {
+    margin: 40px 0;
+    padding: 25px;
+    background: #f8f9fa;
+    border-radius: 10px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+    animation: fadeIn 0.7s ease-out;
+}
+
+.prescription-section h2 {
+    color: #1a2a6c;
+    margin-bottom: 20px;
+    font-size: 1.8rem;
+    animation: slideInLeft 0.5s ease-out;
+}
+
+.prescription-controls {
+    display: flex;
+    gap: 15px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+}
+
+.prescription-btn {
+    background: #28a745;
+    color: white;
+    border: none;
+    padding: 12px 20px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 500;
+    transition: all 0.3s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.prescription-btn:hover {
+    background: #218838;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+}
+
+.prescription-btn.save-btn {
+    background: #007bff;
+}
+
+.prescription-btn.save-btn:hover {
+    background: #0069d9;
+}
+
+.prescription-list {
+    margin-top: 20px;
+}
+
+.empty-prescription-message {
+    text-align: center;
+    padding: 30px;
+    color: #6c757d;
+    font-style: italic;
+    background: #f8f9fa;
+    border-radius: 8px;
+    border: 2px dashed #dee2e6;
+}
+
+.prescription-item {
+    background: white;
+    border-radius: 10px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+    margin-bottom: 20px;
+    overflow: hidden;
+    animation: slideInUp 0.5s ease-out;
+}
+
+.prescription-header {
+    background: #e9ecef;
+    padding: 15px 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.prescription-header h4 {
+    margin: 0;
+    color: #495057;
+}
+
+.remove-prescription-btn {
+    background: #dc3545;
+    color: white;
+    border: none;
+    padding: 6px 12px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    transition: all 0.3s ease;
+}
+
+.remove-prescription-btn:hover {
+    background: #c82333;
+    transform: scale(1.05);
+}
+
+.prescription-form {
+    padding: 20px;
+}
+
+.prescription-form .form-row {
+    margin-bottom: 15px;
+}
+
+.prescription-form .form-group {
+    margin-bottom: 15px;
+}
+
+.prescription-form .form-group label {
+    font-weight: 500;
+    margin-bottom: 5px;
+    color: #495057;
+}
+
+.prescription-form .form-group input,
+.prescription-form .form-group select,
+.prescription-form .form-group textarea {
+    border: 1px solid #ced4da;
+}
+
+.prescription-form .form-group input:focus,
+.prescription-form .form-group select:focus,
+.prescription-form .form-group textarea:focus {
+    border-color: #80bdff;
+    box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
 }
 
 /* Results Section */
@@ -454,6 +617,10 @@ footer {
         gap: 0;
     }
     
+    .prescription-controls {
+        flex-direction: column;
+    }
+    
     header h1 {
         font-size: 2rem;
     }
@@ -473,7 +640,8 @@ footer {
     }
     
     .form-group input,
-    .form-group select {
+    .form-group select,
+    .form-group textarea {
         padding: 10px 12px;
         font-size: 0.9rem;
     }
