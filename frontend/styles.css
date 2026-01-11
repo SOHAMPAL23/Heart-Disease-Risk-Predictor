@@ -514,6 +514,30 @@ form:hover {
     transform: translateY(0);
 }
 
+/* Model Evaluation Link */
+.model-eval-section {
+    text-align: center;
+    margin: 30px 0;
+}
+
+.model-eval-link a {
+    display: inline-block;
+    padding: 12px 25px;
+    background: linear-gradient(120deg, #4b6cb7, #182848);
+    color: white;
+    text-decoration: none;
+    border-radius: 50px;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+}
+
+.model-eval-link a:hover {
+    background: linear-gradient(120deg, #3a5ca0, #0f1a35);
+    transform: translateY(-3px);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+}
+
 /* Footer */
 footer {
     text-align: center;
