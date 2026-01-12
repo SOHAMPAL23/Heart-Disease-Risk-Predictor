@@ -1,16 +1,18 @@
 import pandas as pd
 import numpy as np
 from sklearn.model_selection import train_test_split, GridSearchCV, cross_val_score, StratifiedKFold
-from sklearn.preprocessing import StandardScaler
-from sklearn.linear_model import LogisticRegression
-from sklearn.ensemble import RandomForestClassifier, GradientBoostingClassifier
+from sklearn.preprocessing import StandardScaler, PolynomialFeatures
+from sklearn.linear_model import LogisticRegression, SGDClassifier
+from sklearn.ensemble import RandomForestClassifier, GradientBoostingClassifier, VotingClassifier
+from sklearn.svm import SVC
 from sklearn.metrics import classification_report, roc_auc_score, roc_curve, confusion_matrix, f1_score, precision_score, recall_score
 from sklearn.pipeline import Pipeline
 import joblib
 import matplotlib.pyplot as plt
 import seaborn as sns
 from sklearn.calibration import calibration_curve, CalibratedClassifierCV
-from sklearn.feature_selection import SelectKBest, f_classif
+from sklearn.feature_selection import SelectKBest, f_classif, RFE
+from sklearn.decomposition import PCA
 import warnings
 warnings.filterwarnings('ignore')
 
@@ -27,7 +29,7 @@ except:
     # If we can't download, create a synthetic dataset
     print("Could not download dataset, creating synthetic data...")
     np.random.seed(42)
-    n_samples = 1000
+    n_samples = 1500  # Increased sample size for better training
     
     # Create more realistic synthetic data with stronger correlations
     age = np.random.randint(29, 80, n_samples)
@@ -46,19 +48,19 @@ except:
     
     # Create target with stronger correlation to features for better separation
     target_prob = (
-        0.15 * (age > 55) +
-        0.2 * sex +
-        0.3 * (cp > 1) +
-        0.15 * (trestbps > 140) +
-        0.1 * (chol > 240) +
-        0.15 * fbs +
-        0.1 * restecg +
-        -0.2 * (thalach < 120) +
-        0.3 * exang +
-        0.2 * (oldpeak > 1) +
-        0.1 * slope +
-        0.35 * (ca > 0) +
-        0.3 * (thal > 1)
+        0.2 * (age > 55) +
+        0.25 * sex +
+        0.35 * (cp > 1) +
+        0.2 * (trestbps > 140) +
+        0.15 * (chol > 240) +
+        0.2 * fbs +
+        0.15 * restecg +
+        -0.25 * (thalach < 120) +
+        0.35 * exang +
+        0.25 * (oldpeak > 1) +
+        0.15 * slope +
+        0.4 * (ca > 0) +
+        0.35 * (thal > 1)
     )
     
     target = np.random.binomial(1, np.clip(target_prob, 0, 1), n_samples)
@@ -105,166 +107,174 @@ X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_
 print(f"\nTraining set size: {X_train.shape}")
 print(f"Test set size: {X_test.shape}")
 
-# Feature selection to improve model performance
-print("\nPerforming feature selection...")
-selector = SelectKBest(score_func=f_classif, k=10)
-X_train_selected = selector.fit_transform(X_train, y_train)
-X_test_selected = selector.transform(X_test)
+# Create multiple enhanced pipelines
+print("\nTraining Enhanced Models...")
 
-# Get selected feature names
-selected_features = X.columns[selector.get_support()]
-print(f"Selected features: {list(selected_features)}")
-
-# Create enhanced Logistic Regression pipeline with StandardScaler and feature selection
-print("\nTraining Enhanced Logistic Regression...")
-enhanced_log_reg_pipeline = Pipeline([
+# Enhanced Logistic Regression with polynomial features
+print("Training Enhanced Logistic Regression with polynomial features...")
+lr_poly_pipeline = Pipeline([
     ('scaler', StandardScaler()),
-    ('selector', SelectKBest(score_func=f_classif, k=10)),
-    ('classifier', LogisticRegression(random_state=42, max_iter=2000, C=0.5, solver='liblinear'))
+    ('poly', PolynomialFeatures(degree=2, interaction_only=True)),
+    ('selector', SelectKBest(score_func=f_classif, k=min(20, X_train.shape[1]*2))),
+    ('classifier', LogisticRegression(random_state=42, max_iter=5000, C=0.1, solver='liblinear'))
 ])
 
-# Train Enhanced Logistic Regression
-enhanced_log_reg_pipeline.fit(X_train, y_train)
+lr_poly_pipeline.fit(X_train, y_train)
 
-# Evaluate Enhanced Logistic Regression
-y_pred_elr = enhanced_log_reg_pipeline.predict(X_test)
-y_pred_proba_elr = enhanced_log_reg_pipeline.predict_proba(X_test)[:, 1]
+# Enhanced Random Forest with more sophisticated hyperparameter tuning
+print("\nTraining Enhanced Random Forest with sophisticated hyperparameter tuning...")
 
-print("Enhanced Logistic Regression Results:")
-print(f"Accuracy: {(y_pred_elr == y_test).mean():.4f}")
-print(f"F1 Score: {f1_score(y_test, y_pred_elr):.4f}")
-print(f"Precision: {precision_score(y_test, y_pred_elr):.4f}")
-print(f"Recall: {recall_score(y_test, y_pred_elr):.4f}")
-print(f"ROC AUC: {roc_auc_score(y_test, y_pred_proba_elr):.4f}")
-
-# Create Random Forest with enhanced hyperparameter tuning
-print("\nTraining Enhanced Random Forest with hyperparameter tuning...")
-
-# Define enhanced parameter grid for Random Forest
 rf_param_grid = {
-    'n_estimators': [100, 200, 300],
+    'n_estimators': [200, 300, 500],
     'max_depth': [None, 10, 20, 30],
     'min_samples_split': [2, 5, 10],
     'min_samples_leaf': [1, 2, 4],
-    'max_features': ['sqrt', 'log2', None]
+    'max_features': ['sqrt', 'log2'],
+    'bootstrap': [True, False]
 }
 
-# Create Random Forest classifier
 rf = RandomForestClassifier(random_state=42)
+rf_grid_search = GridSearchCV(rf, rf_param_grid, cv=StratifiedKFold(n_splits=5, shuffle=True, random_state=42), 
+                              scoring='roc_auc', n_jobs=-1, verbose=1)
+rf_grid_search.fit(X_train, y_train)
 
-# Perform Grid Search with Cross Validation
-cv = StratifiedKFold(n_splits=5, shuffle=True, random_state=42)
-grid_search = GridSearchCV(rf, rf_param_grid, cv=cv, scoring='roc_auc', n_jobs=-1, verbose=1)
-grid_search.fit(X_train, y_train)
+best_rf = rf_grid_search.best_estimator_
 
-# Get the best model
-best_rf = grid_search.best_estimator_
-
-# Evaluate Random Forest
-y_pred_rf = best_rf.predict(X_test)
-y_pred_proba_rf = best_rf.predict_proba(X_test)[:, 1]
-
-print("Enhanced Random Forest Results:")
-print(f"Best parameters: {grid_search.best_params_}")
-print(f"Accuracy: {(y_pred_rf == y_test).mean():.4f}")
-print(f"F1 Score: {f1_score(y_test, y_pred_rf):.4f}")
-print(f"Precision: {precision_score(y_test, y_pred_rf):.4f}")
-print(f"Recall: {recall_score(y_test, y_pred_rf):.4f}")
-print(f"ROC AUC: {roc_auc_score(y_test, y_pred_proba_rf):.4f}")
-
-# Create Gradient Boosting model for comparison
-print("\nTraining Gradient Boosting...")
+# Enhanced Gradient Boosting
+print("\nTraining Enhanced Gradient Boosting...")
 gb_param_grid = {
-    'n_estimators': [100, 200],
+    'n_estimators': [200, 300],
     'max_depth': [3, 5, 7],
-    'learning_rate': [0.01, 0.1, 0.2],
-    'subsample': [0.8, 1.0]
+    'learning_rate': [0.01, 0.05, 0.1],
+    'subsample': [0.8, 0.9, 1.0],
+    'min_samples_split': [2, 5, 10],
+    'min_samples_leaf': [1, 2, 4]
 }
 
 gb = GradientBoostingClassifier(random_state=42)
-gb_grid_search = GridSearchCV(gb, gb_param_grid, cv=cv, scoring='roc_auc', n_jobs=-1)
+gb_grid_search = GridSearchCV(gb, gb_param_grid, cv=StratifiedKFold(n_splits=5, shuffle=True, random_state=42), 
+                             scoring='roc_auc', n_jobs=-1)
 gb_grid_search.fit(X_train, y_train)
 
 best_gb = gb_grid_search.best_estimator_
 
-# Evaluate Gradient Boosting
-y_pred_gb = best_gb.predict(X_test)
-y_pred_proba_gb = best_gb.predict_proba(X_test)[:, 1]
+# Support Vector Machine
+print("\nTraining Support Vector Machine...")
+svm_pipeline = Pipeline([
+    ('scaler', StandardScaler()),
+    ('classifier', SVC(kernel='rbf', probability=True, random_state=42, C=1.0, gamma='scale'))
+])
 
-print("Gradient Boosting Results:")
-print(f"Best parameters: {gb_grid_search.best_params_}")
-print(f"Accuracy: {(y_pred_gb == y_test).mean():.4f}")
-print(f"F1 Score: {f1_score(y_test, y_pred_gb):.4f}")
-print(f"Precision: {precision_score(y_test, y_pred_gb):.4f}")
-print(f"Recall: {recall_score(y_test, y_pred_gb):.4f}")
-print(f"ROC AUC: {roc_auc_score(y_test, y_pred_proba_gb):.4f}")
+svm_pipeline.fit(X_train, y_train)
+
+# Create ensemble model
+print("\nCreating Ensemble Model...")
+ensemble = VotingClassifier(
+    estimators=[
+        ('lr', lr_poly_pipeline),
+        ('rf', best_rf),
+        ('gb', best_gb),
+        ('svm', svm_pipeline)
+    ],
+    voting='soft'
+)
+ensemble.fit(X_train, y_train)
+
+# Evaluate all models
+models = {
+    'Enhanced Logistic Regression': lr_poly_pipeline,
+    'Enhanced Random Forest': best_rf,
+    'Enhanced Gradient Boosting': best_gb,
+    'Support Vector Machine': svm_pipeline,
+    'Ensemble Model': ensemble
+}
+
+results = {}
+
+for name, model in models.items():
+    # Make predictions
+    y_pred = model.predict(X_test)
+    y_pred_proba = model.predict_proba(X_test)[:, 1]
+    
+    # Calculate metrics
+    accuracy = (y_pred == y_test).mean()
+    f1 = f1_score(y_test, y_pred)
+    precision = precision_score(y_test, y_pred)
+    recall = recall_score(y_test, y_pred)
+    roc_auc = roc_auc_score(y_test, y_pred_proba)
+    
+    results[name] = {
+        'accuracy': accuracy,
+        'f1': f1,
+        'precision': precision,
+        'recall': recall,
+        'roc_auc': roc_auc,
+        'y_pred': y_pred,
+        'y_pred_proba': y_pred_proba
+    }
+    
+    print(f"\n{name} Results:")
+    print(f"Accuracy: {accuracy:.4f}")
+    print(f"F1 Score: {f1:.4f}")
+    print(f"Precision: {precision:.4f}")
+    print(f"Recall: {recall:.4f}")
+    print(f"ROC AUC: {roc_auc:.4f}")
 
 # Compare all models
 print("\nModel Comparison:")
-print("Metric\t\tEnhanced LR\t\tRandom Forest\t\tGradient Boosting")
-print(f"Accuracy\t{(y_pred_elr == y_test).mean():.4f}\t\t\t{(y_pred_rf == y_test).mean():.4f}\t\t\t{(y_pred_gb == y_test).mean():.4f}")
-print(f"F1 Score\t{f1_score(y_test, y_pred_elr):.4f}\t\t\t{f1_score(y_test, y_pred_rf):.4f}\t\t\t{f1_score(y_test, y_pred_gb):.4f}")
-print(f"ROC AUC\t\t{roc_auc_score(y_test, y_pred_proba_elr):.4f}\t\t\t{roc_auc_score(y_test, y_pred_proba_rf):.4f}\t\t\t{roc_auc_score(y_test, y_pred_proba_gb):.4f}")
-
-# Calibrate models
-print("\nCalibrating models...")
-
-# Calibrate Enhanced Logistic Regression
-calibrated_elr = CalibratedClassifierCV(enhanced_log_reg_pipeline, method='sigmoid', cv=5)
-calibrated_elr.fit(X_train, y_train)
-y_pred_proba_elr_cal = calibrated_elr.predict_proba(X_test)[:, 1]
-
-# Calibrate Random Forest
-calibrated_rf = CalibratedClassifierCV(best_rf, method='sigmoid', cv=5)
-calibrated_rf.fit(X_train, y_train)
-y_pred_proba_rf_cal = calibrated_rf.predict_proba(X_test)[:, 1]
-
-# Calibrate Gradient Boosting
-calibrated_gb = CalibratedClassifierCV(best_gb, method='sigmoid', cv=5)
-calibrated_gb.fit(X_train, y_train)
-y_pred_proba_gb_cal = calibrated_gb.predict_proba(X_test)[:, 1]
-
-print("Calibrated Model Results:")
-print(f"Enhanced Logistic Regression (Calibrated) ROC AUC: {roc_auc_score(y_test, y_pred_proba_elr_cal):.4f}")
-print(f"Random Forest (Calibrated) ROC AUC: {roc_auc_score(y_test, y_pred_proba_rf_cal):.4f}")
-print(f"Gradient Boosting (Calibrated) ROC AUC: {roc_auc_score(y_test, y_pred_proba_gb_cal):.4f}")
+print("Metric\t\tEnhanced LR\t\tRandom Forest\t\tGradient Boosting\tSVM\t\t\tEnsemble")
+for metric in ['accuracy', 'f1', 'precision', 'recall', 'roc_auc']:
+    print(f"{metric.upper()}\t\t", end="")
+    for name in results.keys():
+        print(f"{results[name][metric]:.4f}\t\t\t", end="")
+    print()
 
 # Determine the best model based on ROC AUC
-elr_auc = roc_auc_score(y_test, y_pred_proba_elr)
-rf_auc = roc_auc_score(y_test, y_pred_proba_rf)
-gb_auc = roc_auc_score(y_test, y_pred_proba_gb)
-
-models_auc = {
-    "Enhanced Logistic Regression": (elr_auc, calibrated_elr, enhanced_log_reg_pipeline),
-    "Random Forest": (rf_auc, calibrated_rf, best_rf),
-    "Gradient Boosting": (gb_auc, calibrated_gb, best_gb)
-}
-
-best_model_name = max(models_auc, key=lambda x: models_auc[x][0])
-best_auc, best_model_calibrated, best_model_original = models_auc[best_model_name]
+best_model_name = max(results.keys(), key=lambda x: results[x]['roc_auc'])
+best_model = models[best_model_name]
+best_auc = results[best_model_name]['roc_auc']
 
 print(f"\nSelecting {best_model_name} as the best model with AUC: {best_auc:.4f}")
 
+# Calibrate the best model
+print("\nCalibrating the best model...")
+calibrated_best_model = CalibratedClassifierCV(best_model, method='isotonic', cv=5)
+calibrated_best_model.fit(X_train, y_train)
+
+# Re-evaluate the calibrated model
+y_pred_cal = calibrated_best_model.predict(X_test)
+y_pred_proba_cal = calibrated_best_model.predict_proba(X_test)[:, 1]
+
+calibrated_accuracy = (y_pred_cal == y_test).mean()
+calibrated_f1 = f1_score(y_test, y_pred_cal)
+calibrated_precision = precision_score(y_test, y_pred_cal)
+calibrated_recall = recall_score(y_test, y_pred_cal)
+calibrated_roc_auc = roc_auc_score(y_test, y_pred_proba_cal)
+
+print(f"\nCalibrated {best_model_name} Results:")
+print(f"Accuracy: {calibrated_accuracy:.4f}")
+print(f"F1 Score: {calibrated_f1:.4f}")
+print(f"Precision: {calibrated_precision:.4f}")
+print(f"Recall: {calibrated_recall:.4f}")
+print(f"ROC AUC: {calibrated_roc_auc:.4f}")
+
 # Threshold tuning based on precision/recall trade-off
+from sklearn.metrics import precision_recall_curve
+
 print("\nPerforming threshold tuning...")
-if best_model_name == "Enhanced Logistic Regression":
-    precisions, recalls, thresholds = precision_recall_curve(y_test, y_pred_proba_elr)
-elif best_model_name == "Random Forest":
-    precisions, recalls, thresholds = precision_recall_curve(y_test, y_pred_proba_rf)
-else:  # Gradient Boosting
-    precisions, recalls, thresholds = precision_recall_curve(y_test, y_pred_proba_gb)
+precisions, recalls, thresholds = precision_recall_curve(y_test, y_pred_proba_cal)
 
 # Find threshold that maximizes F1 score
 f1_scores = 2 * (precisions * recalls) / (precisions + recalls + 1e-8)
 best_threshold_idx = np.argmax(f1_scores)
-best_threshold = thresholds[best_threshold_idx]
+best_threshold = thresholds[best_threshold_idx] if best_threshold_idx < len(thresholds) else thresholds[-1]
 
 print(f"Optimal threshold: {best_threshold:.3f}")
 print(f"Best F1 score at this threshold: {f1_scores[best_threshold_idx]:.4f}")
 
-# Save the best model
-print("\nSaving the best model...")
-joblib.dump(best_model_calibrated, '../model/final_model.pkl')
+# Save the calibrated model
+print("\nSaving the calibrated model...")
+joblib.dump(calibrated_best_model, '../model/final_model.pkl')
 joblib.dump(best_model_name, '../model/model_name.pkl')
 joblib.dump(best_threshold, '../model/best_threshold.pkl')
 joblib.dump(list(X.columns), '../model/feature_names.pkl')
@@ -278,12 +288,9 @@ print("\nCreating visualization plots...")
 plt.figure(figsize=(15, 5))
 
 plt.subplot(1, 3, 1)
-fpr_elr, tpr_elr, _ = roc_curve(y_test, y_pred_proba_elr)
-fpr_rf, tpr_rf, _ = roc_curve(y_test, y_pred_proba_rf)
-fpr_gb, tpr_gb, _ = roc_curve(y_test, y_pred_proba_gb)
-plt.plot(fpr_elr, tpr_elr, label=f'Enhanced LR (AUC = {elr_auc:.3f})')
-plt.plot(fpr_rf, tpr_rf, label=f'Random Forest (AUC = {rf_auc:.3f})')
-plt.plot(fpr_gb, tpr_gb, label=f'Gradient Boosting (AUC = {gb_auc:.3f})')
+for name, result in results.items():
+    fpr, tpr, _ = roc_curve(y_test, result['y_pred_proba'])
+    plt.plot(fpr, tpr, label=f'{name} (AUC = {result["roc_auc"]:.3f})')
 plt.plot([0, 1], [0, 1], 'k--', label='Random')
 plt.xlabel('False Positive Rate')
 plt.ylabel('True Positive Rate')
@@ -292,21 +299,17 @@ plt.legend()
 
 # Precision-Recall Curve
 plt.subplot(1, 3, 2)
-plt.plot(recalls, precisions, label='Precision-Recall Curve')
+for name, result in results.items():
+    prec, rec, _ = precision_recall_curve(y_test, result['y_pred_proba'])
+    plt.plot(rec, prec, label=f'{name}')
 plt.xlabel('Recall')
 plt.ylabel('Precision')
-plt.title('Precision-Recall Curve')
+plt.title('Precision-Recall Curves')
 plt.legend()
 
 # Confusion Matrix for best model
 plt.subplot(1, 3, 3)
-if best_model_name == "Enhanced Logistic Regression":
-    y_pred_best = y_pred_elr
-elif best_model_name == "Random Forest":
-    y_pred_best = y_pred_rf
-else:  # Gradient Boosting
-    y_pred_best = y_pred_gb
-
+y_pred_best = calibrated_best_model.predict(X_test)
 cm = confusion_matrix(y_test, y_pred_best)
 sns.heatmap(cm, annot=True, fmt='d', cmap='Blues')
 plt.title(f'Confusion Matrix - {best_model_name}')
@@ -317,40 +320,61 @@ plt.tight_layout()
 plt.savefig('../model/evaluation_curves.png')
 plt.close()
 
-# Feature importance (for the selected model)
+# Feature importance (for the best model if it's tree-based)
 plt.figure(figsize=(10, 6))
 
-if best_model_name == "Enhanced Logistic Regression":
-    # For Logistic Regression, use coefficients
-    coefficients = best_model_original.named_steps['classifier'].coef_[0]
-    # Get feature names after selection
-    selected_indices = best_model_original.named_steps['selector'].get_support(indices=True)
-    selected_feature_names = X.columns[selected_indices]
-    feature_importance = pd.DataFrame({
-        'feature': selected_feature_names,
-        'importance': np.abs(coefficients)
-    }).sort_values('importance', ascending=False)
-    plt.title('Enhanced Logistic Regression: Feature Coefficients (Absolute Values)')
-elif best_model_name == "Random Forest":
-    # For Random Forest, use feature importances
-    feature_importance = pd.DataFrame({
-        'feature': X.columns,
-        'importance': best_model_original.feature_importances_
-    }).sort_values('importance', ascending=False)
-    plt.title('Random Forest: Feature Importances')
-else:  # Gradient Boosting
-    # For Gradient Boosting, use feature importances
-    feature_importance = pd.DataFrame({
-        'feature': X.columns,
-        'importance': best_model_original.feature_importances_
-    }).sort_values('importance', ascending=False)
-    plt.title('Gradient Boosting: Feature Importances')
+if hasattr(best_model, 'named_steps'):
+    # For pipelines, get the last step
+    last_step = list(best_model.named_steps.values())[-1]
+    if hasattr(last_step, 'feature_importances_'):
+        feature_importance = pd.DataFrame({
+            'feature': X.columns,
+            'importance': last_step.feature_importances_
+        }).sort_values('importance', ascending=False)
+        plt.barh(feature_importance['feature'][:10], feature_importance['importance'][:10])
+        plt.title(f'{best_model_name}: Feature Importances')
+    elif hasattr(last_step, 'coef_'):
+        # For Logistic Regression, use coefficients
+        coefficients = last_step.coef_[0]
+        feature_importance = pd.DataFrame({
+            'feature': X.columns,
+            'importance': np.abs(coefficients)
+        }).sort_values('importance', ascending=False)
+        plt.barh(feature_importance['feature'][:10], feature_importance['importance'][:10])
+        plt.title(f'{best_model_name}: Feature Coefficients (Absolute Values)')
+    else:
+        # For other models, we'll just show a placeholder
+        plt.text(0.5, 0.5, 'Feature importance not available\nfor this model type', 
+                 horizontalalignment='center', verticalalignment='center', transform=plt.gca().transAxes)
+        plt.title(f'{best_model_name}: Feature Importance')
+else:
+    # For non-pipeline models
+    if hasattr(best_model, 'feature_importances_'):
+        feature_importance = pd.DataFrame({
+            'feature': X.columns,
+            'importance': best_model.feature_importances_
+        }).sort_values('importance', ascending=False)
+        plt.barh(feature_importance['feature'][:10], feature_importance['importance'][:10])
+        plt.title(f'{best_model_name}: Feature Importances')
+    elif hasattr(best_model, 'coef_'):
+        # For Logistic Regression, use coefficients
+        coefficients = best_model.coef_[0]
+        feature_importance = pd.DataFrame({
+            'feature': X.columns,
+            'importance': np.abs(coefficients)
+        }).sort_values('importance', ascending=False)
+        plt.barh(feature_importance['feature'][:10], feature_importance['importance'][:10])
+        plt.title(f'{best_model_name}: Feature Coefficients (Absolute Values)')
+    else:
+        # For other models, we'll just show a placeholder
+        plt.text(0.5, 0.5, 'Feature importance not available\nfor this model type', 
+                 horizontalalignment='center', verticalalignment='center', transform=plt.gca().transAxes)
+        plt.title(f'{best_model_name}: Feature Importance')
 
-plt.barh(feature_importance['feature'][:10], feature_importance['importance'][:10])
 plt.xlabel('Importance')
 plt.tight_layout()
 plt.savefig('../model/feature_importance.png')
 plt.close()
 
 print("Plots saved successfully!")
-print("\nTraining completed successfully!")
+print("\nEnhanced training completed successfully!")
