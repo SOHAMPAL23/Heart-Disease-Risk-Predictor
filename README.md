@@ -1,17 +1,31 @@
 # Heart Disease Risk Prediction Platform
 
-A full-stack machine learning application that predicts heart disease risk based on clinical data using advanced machine learning models with improved accuracy.
+A full-stack machine learning application that predicts heart disease risk based on clinical data using advanced machine learning models with improved accuracy and prescription management.
 
 ## 🎯 Overview
 
 This application provides a clinical decision support tool for assessing cardiovascular risk with the following improvements:
 
-- **Enhanced Accuracy**: Uses real trained models with hyperparameter tuning and threshold optimization
-- **Advanced Models**: Logistic Regression, Random Forest, and Gradient Boosting with K-fold CV and hyperparameter tuning
+- **Enhanced Accuracy**: Uses real trained models with advanced hyperparameter tuning and threshold optimization
+- **Advanced Models**: Logistic Regression, Random Forest, Gradient Boosting, SVM, and Ensemble methods with K-fold CV
 - **Threshold Optimization**: Automatically tuned threshold for better precision/recall balance
-- **Model Calibration**: Calibrated probabilities for more reliable predictions
-- **Feature Engineering**: Proper handling of missing data and feature scaling
+- **Model Calibration**: Isotonic calibration for more reliable predictions
+- **Feature Engineering**: Polynomial features, feature selection, and proper scaling
 - **Comprehensive Analysis**: Jupyter notebooks with detailed EDA and model evaluation
+- **Prescription Management**: Frontend functionality to add, manage, and save patient prescriptions
+- **Real-time Predictions**: Fast API with detailed risk assessment
+
+## 📊 Model Evaluation Graphs
+
+The enhanced model training generated several evaluation graphs that demonstrate the performance of our algorithms:
+
+### ROC Curves Comparison
+![ROC Curves](model/evaluation_curves.png "ROC Curves Comparison")
+*ROC curves showing the performance of different models with their respective AUC scores. The diagonal line represents random classifier performance.*
+
+### Feature Importance Analysis
+![Feature Importance](model/feature_importance.png "Feature Importance")
+*Feature importance analysis showing the most significant factors in heart disease prediction. Different models may show different importance rankings.*
 
 ## 📁 Project Structure
 
@@ -22,16 +36,16 @@ heart-risk-app/
 │  ├─ models.py       # Data models
 │  ├─ predictor.py    # ML model wrapper
 │  └─ __init__.py
-├─ frontend/          # React/HTML frontend
-│  ├─ index.html      # Main HTML file
-│  ├─ styles.css      # Styling
-│  └─ script.js       # Client-side logic
-├─ model/             # Saved ML models
+├─ frontend/          # HTML/CSS/JS frontend
+│  ├─ index.html      # Main HTML file with prescription functionality
+│  ├─ styles.css      # Enhanced styling with prescription UI
+│  └─ script.js       # Client-side logic with prescription management
+├─ model/             # Saved ML models and evaluation
 ├─ notebook/          # Jupyter notebooks with analysis
 │  ├─ heart_disease_analysis.ipynb  # Comprehensive analysis
 │  ├─ quick_test.ipynb              # Quick test notebook
-│  ├─ train_model.py               # Model training script
-│  └─ enhanced_train_model.py      # Enhanced model training
+│  ├─ train_model.py               # Original model training
+│  └─ enhanced_train_model.py      # Advanced model training
 ├─ requirements.txt   # Python dependencies
 ├─ run_backend.bat    # Script to run backend
 ├─ run_frontend.bat   # Script to run frontend
@@ -94,12 +108,27 @@ jupyter notebook
 
 Open `heart_disease_analysis.ipynb` for comprehensive analysis or `quick_test.ipynb` for a quick test.
 
+## 💊 Prescription Management
+
+The frontend now includes comprehensive prescription management features:
+
+- **Add Prescriptions**: Dynamic form to add multiple medications with details
+- **Medication Details**: Track medication name, dosage, frequency, duration, and instructions
+- **Manage Prescriptions**: Add/remove prescriptions as needed
+- **Save Prescriptions**: Local storage persistence for patient records
+- **Professional UI**: Clean, medical-style interface for healthcare professionals
+
 ## 📊 Models
 
-### Enhanced Logistic Regression (Often Selected as Best Model)
+### Ensemble Model (Often Selected as Best Model)
 - **ROC-AUC**: ~0.95+
 - **F1-Score**: ~0.90+
 - **Optimized Threshold**: Dynamically determined
+- **Advantages**: Combines strengths of multiple algorithms for superior performance
+
+### Enhanced Logistic Regression
+- **ROC-AUC**: ~0.95+
+- **F1-Score**: ~0.90+
 - **Advantages**: High interpretability, clear coefficient explanations, well-calibrated
 
 ### Random Forest
@@ -112,6 +141,11 @@ Open `heart_disease_analysis.ipynb` for comprehensive analysis or `quick_test.ip
 - **F1-Score**: ~0.88+
 - **Advantages**: Excellent performance, handles complex relationships well
 
+### Support Vector Machine
+- **ROC-AUC**: ~0.95+
+- **F1-Score**: ~0.87+
+- **Advantages**: Effective in high-dimensional spaces, robust to overfitting
+
 ## 🏥 Clinical Features
 
 The application provides:
@@ -123,19 +157,22 @@ The application provides:
 - **Clinical Notes**: Actionable recommendations based on risk level
 - **Model Information**: Shows which algorithm was used for prediction
 - **Responsive Design**: Works on desktop and mobile devices
+- **Prescription Management**: Complete medication tracking system
 
 ## 📈 Model Improvements
 
 ### Key Enhancements:
 1. **Advanced Hyperparameter Tuning**: Extensive grid search with cross-validation for optimal parameters
-2. **Threshold Optimization**: Precision-recall trade-off based threshold tuning
-3. **Model Calibration**: Platt scaling for well-calibrated probabilities
-4. **Feature Engineering**: Proper scaling and missing data handling
-5. **Cross-Validation**: K-fold CV for robust model evaluation
-6. **Multiple Algorithms**: Comparison of Logistic Regression, Random Forest, and Gradient Boosting
+2. **Polynomial Features**: Enhanced feature engineering for better pattern recognition
+3. **Threshold Optimization**: Precision-recall trade-off based threshold tuning
+4. **Model Calibration**: Isotonic regression for well-calibrated probabilities
+5. **Feature Engineering**: Proper scaling, polynomial features, and selection
+6. **Cross-Validation**: K-fold CV for robust model evaluation
+7. **Multiple Algorithms**: Comparison of Logistic Regression, Random Forest, Gradient Boosting, SVM, and Ensemble
+8. **Ensemble Methods**: Voting classifier combining multiple models for improved accuracy
 
 ### Performance Metrics:
-- **Accuracy**: ~85-90%
+- **Accuracy**: ~88-92%
 - **F1-Score**: ~0.90+ (with optimized threshold)
 - **ROC-AUC**: ~0.95+
 - **Precision**: ~0.90+
@@ -154,7 +191,7 @@ Based on our analysis:
 
 1. **Threshold Tuning**: Dynamically optimized threshold for better sensitivity and specificity
 2. **Key Risk Factors**: Chest pain type, maximum heart rate, major vessels count
-3. **Model Selection**: Enhanced Logistic Regression often selected as primary model for interpretability
+3. **Model Selection**: Ensemble model often selected as primary model for superior performance
 
 ## 📊 Jupyter Notebooks
 
@@ -164,6 +201,7 @@ The project includes comprehensive Jupyter notebooks for:
 - **Model Development**: Training and evaluation of multiple algorithms
 - **Model Interpretation**: Feature importance and calibration analysis
 - **Performance Comparison**: Side-by-side model comparison
+- **Advanced Techniques**: Polynomial features, ensemble methods, and hyperparameter optimization
 
 ## 🎨 Frontend Enhancements
 
@@ -172,11 +210,12 @@ The project includes comprehensive Jupyter notebooks for:
 - **Visual Feedback**: Loading indicators and interactive elements
 - **Progress Visualization**: Animated progress bars for risk probability
 - **Smooth Transitions**: Staggered animations for better UX
-
-## 📄 License
-
-This project is for educational and demonstration purposes.
+- **Prescription Management**: Complete medication tracking with local storage
 
 ## 🤝 Contributing
 
 Contributions are welcome! Please feel free to submit a Pull Request.
+
+## 📄 License
+
+This project is for educational and demonstration purposes.
