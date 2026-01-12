@@ -1,17 +1,17 @@
 import joblib
 import numpy as np
-import os
-from typing import List, Tuple, Any
 import pandas as pd
-from sklearn.base import BaseEstimator
-from sklearn.pipeline import Pipeline
+from sklearn.preprocessing import StandardScaler
+import os
+import sys
 
 class HeartDiseasePredictor:
     def __init__(self):
-        self.model: Any = None
-        self.model_name: str = ""
-        self.threshold: float = 0.5
-        self.feature_names: List[str] = []
+        self.model = None
+        self.scaler = StandardScaler()
+        self.model_name = "Unknown"
+        self.threshold = 0.5
+        self.feature_names = []
         self.load_models()
     
     def load_models(self):
@@ -34,108 +34,131 @@ class HeartDiseasePredictor:
             self._create_dummy_models()
     
     def _create_dummy_models(self):
-        """Create dummy models for demonstration"""
-        from sklearn.dummy import DummyClassifier
-        from sklearn.preprocessing import StandardScaler
-        from sklearn.linear_model import LogisticRegression
+        """Create dummy models in case loading fails"""
+        print("Creating dummy models for demo purposes...")
         
-        # Create dummy logistic regression pipeline
-        self.model = Pipeline([
-            ('scaler', StandardScaler()),
-            ('classifier', LogisticRegression())
-        ])
-        
-        self.model_name = "Logistic Regression"
+        # Create a simple placeholder
+        self.model = None
+        self.model_name = "Dummy Model"
         self.threshold = 0.5
-        self.feature_names = [
-            'age', 'sex', 'cp', 'trestbps', 'chol', 'fbs', 'restecg', 
-            'thalach', 'exang', 'oldpeak', 'slope', 'ca', 'thal'
-        ]
+        self.feature_names = ['age', 'sex', 'cp', 'trestbps', 'chol', 'fbs', 'restecg', 
+                             'thalach', 'exang', 'oldpeak', 'slope', 'ca', 'thal']
     
-    def prepare_input_data(self, patient_data: dict) -> np.ndarray:
-        """Convert patient data to model input format"""
-        # Convert to ordered list based on feature names
-        if not self.feature_names:
-            self.feature_names = [
-                'age', 'sex', 'cp', 'trestbps', 'chol', 'fbs', 'restecg', 
-                'thalach', 'exang', 'oldpeak', 'slope', 'ca', 'thal'
-            ]
+    def predict(self, patient_data):
+        """
+        Predict heart disease risk based on patient data
         
-        input_data = [[patient_data.get(feature, 0) for feature in self.feature_names]]
-        return np.array(input_data)
-    
-    def get_feature_contributions(self, patient_data: dict) -> List[dict]:
-        """Get feature contributions for interpretability"""
-        # Ensure feature names are initialized
-        if not self.feature_names:
-            self.feature_names = [
-                'age', 'sex', 'cp', 'trestbps', 'chol', 'fbs', 'restecg', 
-                'thalach', 'exang', 'oldpeak', 'slope', 'ca', 'thal'
-            ]
+        Args:
+            patient_data: Dictionary containing patient information
             
-        try:
-            if self.model is None:
-                self._create_dummy_models()
-                
-            # For logistic regression, use coefficients
-            if self.model_name == "Logistic Regression":
-                # Extract the logistic regression model from the pipeline
-                if hasattr(self.model, 'named_steps'):
-                    lr_model = self.model.named_steps['classifier']
-                    if hasattr(lr_model, 'coef_'):
-                        coefficients = lr_model.coef_[0]
-                        contributions = []
-                        for i, feature in enumerate(self.feature_names):
-                            contribution = coefficients[i] * patient_data.get(feature, 0)
-                            contributions.append({
-                                "feature": feature,
-                                "contribution": float(contribution),
-                                "coefficient": float(coefficients[i])
-                            })
-                        # Sort by absolute contribution
-                        contributions.sort(key=lambda x: abs(x["contribution"]), reverse=True)
-                        return contributions[:5]  # Top 5 contributors
-                # Fallback if we can't extract coefficients
-                return [{"feature": "age", "contribution": 0.1, "coefficient": 0.05}]
-            else:
-                # For Random Forest or other models, return generic importance
-                return [
-                    {"feature": "age", "importance": 0.15, "contribution": 0.05},
-                    {"feature": "sex", "importance": 0.10, "contribution": 0.03},
-                    {"feature": "cp", "importance": 0.12, "contribution": 0.04},
-                    {"feature": "thalach", "importance": 0.18, "contribution": 0.06},
-                    {"feature": "ca", "importance": 0.12, "contribution": 0.04}
-                ]
-        except Exception as e:
-            print(f"Error getting feature contributions: {e}")
-            return [{"feature": "age", "contribution": 0.1, "coefficient": 0.05}]
-    
-    def predict(self, patient_data: dict) -> Tuple[str, float, List[dict]]:
-        """
-        Make prediction using the best model
-        
         Returns:
-            risk_level (str): "Low Risk" or "High Risk"
-            probability (float): Probability of heart disease
-            contributing_factors (List[dict]): Top contributing factors
+            Tuple of (risk_level, probability, contributing_factors)
         """
-        # Prepare input data
-        input_array = self.prepare_input_data(patient_data)
-        
-        # Make prediction
         try:
-            if self.model is None:
-                self._create_dummy_models()
+            # Convert patient data to DataFrame with proper columns
+            input_data = pd.DataFrame([patient_data])
+            
+            # Ensure all required features are present
+            for feature in self.feature_names:
+                if feature not in input_data.columns:
+                    input_data[feature] = 0  # Default value
+            
+            # Reorder columns to match training
+            input_data = input_data[self.feature_names]
+            
+            # Make prediction
+            if self.model is not None:
+                # Get prediction probability
+                proba = self.model.predict_proba(input_data)[0][1]
+                probability = float(proba)
                 
-            probability = self.model.predict_proba(input_array)[0][1]  # Probability of class 1
+                # Determine risk level
+                risk_level = "High Risk" if probability > self.threshold else "Low Risk"
+                
+                # Get contributing factors based on model type
+                contributing_factors = self._get_contributing_factors(input_data, probability)
+            else:
+                # Fallback for dummy model
+                probability = np.random.random()
+                risk_level = "High Risk" if probability > self.threshold else "Low Risk"
+                contributing_factors = [{"feature": "age", "coefficient": 0.05}]
+            
+            return risk_level, probability, contributing_factors
+            
         except Exception as e:
-            print(f"Error making prediction: {e}")
-            probability = 0.5  # Default probability
-        
-        # Determine risk level based on optimized threshold
-        risk_level = "High Risk" if probability > self.threshold else "Low Risk"
-        
-        # Get contributing factors
-        contributing_factors = self.get_feature_contributions(patient_data)
-        
-        return risk_level, probability, contributing_factors
+            print(f"Error in prediction: {e}")
+            # Return safe fallback values
+            return "Low Risk", 0.5, [{"feature": "general", "coefficient": 0.0}]
+    
+    def _get_contributing_factors(self, input_data, probability):
+        """
+        Get the most significant contributing factors to the prediction
+        """
+        try:
+            # If we have a pipeline, get the last step
+            model_to_examine = self.model
+            if hasattr(self.model, 'named_steps'):
+                # Get the last step which should be the classifier
+                model_to_examine = list(self.model.named_steps.values())[-1]
+            
+            # For Logistic Regression, we can get feature coefficients
+            if hasattr(model_to_examine, 'coef_'):
+                # Get coefficients
+                coefficients = model_to_examine.coef_[0] if len(model_to_examine.coef_.shape) > 1 else model_to_examine.coef_
+                
+                # Get the input values for this prediction
+                input_values = input_data.iloc[0].values
+                
+                # Calculate contribution scores (coefficient * input_value)
+                contributions = coefficients * input_values
+                
+                # Create factor list sorted by absolute contribution
+                factors = [(self.feature_names[i], contributions[i], abs(contributions[i])) 
+                          for i in range(len(self.feature_names))]
+                factors.sort(key=lambda x: x[2], reverse=True)  # Sort by absolute contribution
+                
+                # Return top 5 factors
+                contributing_factors = []
+                for feature, contrib, abs_contrib in factors[:5]:
+                    contributing_factors.append({
+                        "feature": feature,
+                        "coefficient": round(float(contrib), 3)
+                    })
+                    
+            # For tree-based models, we can get feature importances
+            elif hasattr(model_to_examine, 'feature_importances_'):
+                importances = model_to_examine.feature_importances_
+                
+                # Create factor list sorted by importance
+                factors = [(self.feature_names[i], importances[i]) 
+                          for i in range(len(self.feature_names))]
+                factors.sort(key=lambda x: x[1], reverse=True)  # Sort by importance
+                
+                # Return top 5 factors
+                contributing_factors = []
+                for feature, importance in factors[:5]:
+                    contributing_factors.append({
+                        "feature": feature,
+                        "importance": round(float(importance), 3)
+                    })
+            else:
+                # Default case - just return the top features based on input values
+                input_series = input_data.iloc[0]
+                sorted_features = input_series.abs().sort_values(ascending=False)
+                
+                contributing_factors = []
+                for feature, value in sorted_features.head(5).items():
+                    contributing_factors.append({
+                        "feature": feature,
+                        "value": round(float(value), 3)
+                    })
+            
+            return contributing_factors
+            
+        except Exception as e:
+            print(f"Error getting contributing factors: {e}")
+            # Return a default set of factors
+            return [{"feature": "general", "coefficient": 0.0}]
+
+# Create global predictor instance
+predictor = HeartDiseasePredictor()
