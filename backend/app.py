@@ -12,13 +12,13 @@ from typing import List
 from backend.models import PatientData, PredictionResult
 from backend.predictor import HeartDiseasePredictor
 
-# Create the FastAPI app instance - this is what Vercel looks for
-app = FastAPI(title="Heart Disease Prediction API", 
-              description="API for predicting heart disease risk based on patient data",
-              version="1.0.0")
+# Create the FastAPI app instance
+heart_disease_app = FastAPI(title="Heart Disease Prediction API", 
+                           description="API for predicting heart disease risk based on patient data",
+                           version="1.0.0")
 
 # Add CORS middleware to allow frontend to communicate with backend
-app.add_middleware(
+heart_disease_app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],  # In production, specify exact origins
     allow_credentials=True,
@@ -29,15 +29,15 @@ app.add_middleware(
 # Initialize predictor
 predictor = HeartDiseasePredictor()
 
-@app.get("/")
+@heart_disease_app.get("/")
 async def root():
     return {"message": "Heart Disease Prediction API", "version": "1.0.0"}
 
-@app.get("/health")
+@heart_disease_app.get("/health")
 async def health_check():
     return {"status": "healthy"}
 
-@app.post("/predict", response_model=PredictionResult)
+@heart_disease_app.post("/predict", response_model=PredictionResult)
 async def predict_heart_disease(data: PatientData):
     """
     Predict heart disease risk based on patient data
@@ -73,10 +73,11 @@ async def predict_heart_disease(data: PatientData):
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Prediction error: {str(e)}")
 
-# Export the app instance for Vercel and other deployment platforms
-application = app
+# Export the app instance for deployment platforms
+app = heart_disease_app
+application = heart_disease_app
 
 # For local development
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8002)
+    uvicorn.run(heart_disease_app, host="0.0.0.0", port=8002)
