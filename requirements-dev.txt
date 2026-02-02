@@ -1,0 +1,3 @@
+-r requirements.txt
+setuptools>=60.0.0
+wheel
