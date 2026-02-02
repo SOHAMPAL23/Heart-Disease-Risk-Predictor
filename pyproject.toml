@@ -1,0 +1,29 @@
+[tool.poetry]
+name = "heart-disease-prediction-api"
+version = "1.0.0"
+description = "API for predicting heart disease risk based on patient data"
+authors = ["Soham <soham@example.com>"]
+
+[tool.poetry.dependencies]
+python = "^3.8"
+fastapi = "^0.68.0"
+uvicorn = {version = "^0.15.0", extras = ["standard"]}
+scikit-learn = "^1.0.2"
+pandas = "^1.3.3"
+numpy = "^1.21.2"
+pydantic = "^1.8.2"
+joblib = "^1.1.0"
+typing-extensions = "^3.10.0"
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.uvicorn]
+app = "app:app"
+host = "0.0.0.0"
+port = 8002
+reload = false
+
+[tool.hatch.metadata]
+allow-direct-references = true

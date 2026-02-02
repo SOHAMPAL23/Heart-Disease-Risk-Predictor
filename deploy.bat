@@ -1,0 +1,6 @@
+@echo off
+echo Installing dependencies...
+pip install -r requirements.txt
+
+echo Starting Heart Disease Prediction API...
+python -c "from backend.app import app; import uvicorn; uvicorn.run('backend.app:app', host='0.0.0.0', port=8002)"
