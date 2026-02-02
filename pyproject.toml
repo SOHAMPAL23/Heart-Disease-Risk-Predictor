@@ -1,8 +1,0 @@
-[build-system]
-requires = ["setuptools", "wheel"]
-build-backend = "setuptools.build_meta"
-
-[project]
-name = "heart-disease-prediction-api"
-version = "1.0.0"
-description = "API for predicting heart disease risk based on patient data"
