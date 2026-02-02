@@ -4,14 +4,15 @@ import sys
 # Add the parent directory to the path to import from backend module
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from fastapi import FastAPI, HTTPException, Depends
+from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
-from typing import Dict, Any, List, Optional
+from typing import List
 
 from backend.models import PatientData, PredictionResult
 from backend.predictor import HeartDiseasePredictor
 
+# Create the FastAPI app instance - this is what Vercel looks for
 app = FastAPI(title="Heart Disease Prediction API", 
               description="API for predicting heart disease risk based on patient data",
               version="1.0.0")
@@ -72,9 +73,10 @@ async def predict_heart_disease(data: PatientData):
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Prediction error: {str(e)}")
 
-# For deployment platforms that look for 'application' as the entrypoint
+# Export the app instance for Vercel and other deployment platforms
 application = app
 
+# For local development
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run(app, host="0.0.0.0", port=8002)
