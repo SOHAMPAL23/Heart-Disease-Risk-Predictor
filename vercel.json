@@ -2,18 +2,19 @@
   "version": 2,
   "builds": [
     {
-      "src": "app.py",
+      "src": "api/index.py",
       "use": "@vercel/python",
       "config": {
-        "runtime": "python3.9",
-        "installCommand": "pip install poetry && poetry install"
+        "runtime": "python3.10",
+        "installCommand": "pip install -r api/requirements.txt",
+        "buildCommand": "echo 'Building Flask API'"
       }
     }
   ],
   "routes": [
     {
       "src": "/(.*)",
-      "dest": "app.py"
+      "dest": "api/index.py"
     }
   ]
 }
